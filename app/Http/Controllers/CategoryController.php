@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -55,12 +56,17 @@ class CategoryController extends Controller
     public function destroy(int $id): JsonResponse
     {
         //curl -X DELETE http://boolean.test/api/categories/188 -H "Accept: application/json"
-      $category = Category::findOrFail($id);
+        try {
+            $category = Category::where('id', $id)->firstOrFail();
 
-      // Delete the category
-      $category->delete();
+            // Delete the product
+            $category->delete();
 
-      return response()->json(null, 204);
-
+            return response()->json(null, 204);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 405);
+        }
     }
 }

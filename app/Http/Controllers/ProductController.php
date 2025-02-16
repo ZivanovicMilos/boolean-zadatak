@@ -6,6 +6,7 @@ use App\Http\Resources\InventoryResource;
 use App\Models\Category;
 use App\Models\Inventory;
 use App\Models\Product;
+use Exception;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -87,7 +88,7 @@ class ProductController extends Controller
         // curl -X PUT http://boolean.test/api/products/0515C002 -H "Content-Type: application/json" -d '{"sale_price": "44.99"}'
         $product = Product::findOrFail($id);
         $product->update($request->all());
-        return response()->json($product, 200);
+        return response()->json($product);
     }
 
     /**
@@ -95,7 +96,17 @@ class ProductController extends Controller
      */
     public function destroy(string $id)
     {
-        Inventory::destroy($id);
-        return response()->json(null, 204);
+        try {
+            $product = Product::where('product_number', $id)->firstOrFail();
+
+            // Delete the product
+            $product->delete();
+
+            return response()->json(null, 204);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 405);
+        }
     }
 }
